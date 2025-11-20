@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  service: one
+  latitude: 9.99
+  longitude: 9.99
+  radius_km: 9.99
+
+two:
+  service: two
+  latitude: 9.99
+  longitude: 9.99
+  radius_km: 9.99

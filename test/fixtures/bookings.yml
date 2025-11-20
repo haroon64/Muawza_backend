@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  service: one
+  customerProfile: one
+  booking_status: 1
+  scheduled_date: 2025-11-11
+  scheduled_time: 2025-11-11 17:26:20
+  customer_notes: MyText
+
+two:
+  service: two
+  customerProfile: two
+  booking_status: 1
+  scheduled_date: 2025-11-11
+  scheduled_time: 2025-11-11 17:26:20
+  customer_notes: MyText

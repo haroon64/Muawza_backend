@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  vendorProfile: one
+  service_name: MyString
+  detailed_description: MyText
+  min_service_price: 9.99
+  max_service_price: 9.99
+  physical_address: MyString
+  latitude: MyString
+  longitude: MyString
+  active_status: false
+
+two:
+  vendorProfile: two
+  service_name: MyString
+  detailed_description: MyText
+  min_service_price: 9.99
+  max_service_price: 9.99
+  physical_address: MyString
+  latitude: MyString
+  longitude: MyString
+  active_status: false

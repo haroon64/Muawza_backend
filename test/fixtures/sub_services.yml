@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  service: one
+  sub_service_name: MyString
+  description: MyText
+  price: 1
+  price_bargain: 1
+  active_status: false
+
+two:
+  service: two
+  sub_service_name: MyString
+  description: MyText
+  price: 1
+  price_bargain: 1
+  active_status: false
