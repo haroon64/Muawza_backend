@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_19_125807) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -144,7 +144,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_19_125807) do
     t.boolean "active_status", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "vendor_profile_id", null: false
+    t.string "city"
     t.index ["service_id"], name: "index_sub_services_on_service_id"
+    t.index ["vendor_profile_id"], name: "index_sub_services_on_vendor_profile_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -202,6 +205,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_19_125807) do
   add_foreign_key "service_areas", "sub_services"
   add_foreign_key "service_availabilities", "sub_services"
   add_foreign_key "sub_services", "services"
+  add_foreign_key "sub_services", "vendor_profiles"
   add_foreign_key "vendor_portfolios", "vendor_profiles"
   add_foreign_key "vendor_profiles", "users"
 end

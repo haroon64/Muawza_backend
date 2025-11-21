@@ -48,12 +48,13 @@ class User < ApplicationRecord
   
     # Extract data safely
     email = auth.info.email
-    full_name  = auth.info.full_name
+    full_name = auth.info.name || auth.info.full_name
+    puts "-----full-name----#{full_name}"
     # image = auth.info.image
     uid   = auth.uid
     provider = auth.provider
-    puts email
-    puts name
+    puts "----email-----#{email}"
+
     # puts image
     puts uid
     puts provider
@@ -68,6 +69,7 @@ class User < ApplicationRecord
     unless user
       user = User.create!(
         email: email,
+        full_name: full_name,
        
         password: Devise.friendly_token[0, 20],  # Google signup user gets auto password
         provider: provider,
@@ -83,6 +85,7 @@ class User < ApplicationRecord
   
     user
   end
+
   def generate_jwt
     payload = {
       user_id: id,

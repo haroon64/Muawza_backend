@@ -1,14 +1,13 @@
 class VendorProfile < ApplicationRecord
   belongs_to :user
 
-  has_many :services, dependent: :destroy
-  has_many :sub_services, through: :services, dependent: :destroy
-  has_many :vendor_portfolios, dependent: :destroy
-  has_many :services
 
+  has_many :sub_services, dependent: :destroy
+  has_many :vendor_portfolios, dependent: :destroy
+  accepts_nested_attributes_for :vendor_portfolios
+
+              
   has_one_attached :profile_image, dependent: :destroy
-  has_one_attached :cnic_front
-  has_one_attached :cnic_back
 
   # Validations for attributes (add other necessary attributes)
   validates :profile_image, presence: true

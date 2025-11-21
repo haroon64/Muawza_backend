@@ -27,9 +27,11 @@ Rails.application.routes.draw do
         },
         defaults: { format: :json }
 
-      # Services routes
+      # Services routess
       namespace :services do
         resources :service_icons, only: [:index, :show, :create, :update, :destroy]
+        resources :sub_services, only: [:index, :show, :create, :update, :destroy]
+        get 'sub_services_by_service/:id', to: 'sub_services#sub_services_by_service'
       end
       # Do not nest duplicate namespace :customer, only declare resources once
     end

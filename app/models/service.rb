@@ -3,6 +3,6 @@ class Service < ApplicationRecord
 
   has_many :sub_services, dependent: :destroy
   has_one_attached :icon
-  belongs_to :vendor_profile
+  # belongs_to :vendor_profile
   
 end

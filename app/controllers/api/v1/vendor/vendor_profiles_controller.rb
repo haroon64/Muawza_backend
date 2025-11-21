@@ -21,12 +21,13 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
   def create
     user_id = vendor_profile_params[:user_id]
     user = User.find(user_id)
-  
+
     existing_profile = VendorProfile.find_by(user_id: user_id)
     if existing_profile
-      return render json: { success: false, message: "Profile already exists" }, status: :unprocessable_entity
+      render json: { success: false, message: "Profile already exists" }, status: :unprocessable_entity
+      return
     end
-  
+
     # Build the VendorProfile object without images and portfolios
     profile = VendorProfile.new(vendor_profile_params.except(:profile_image, :vendor_portfolios))
     profile.user = user
@@ -34,7 +35,7 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
   
     # Attach profile image if present
     profile.profile_image.attach(vendor_profile_params[:profile_image]) if vendor_profile_params[:profile_image].present?
-  
+
     ActiveRecord::Base.transaction do
       if profile.save
         # Handle vendor portfolios
@@ -44,25 +45,26 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
             portfolio = profile.vendor_portfolios.build(
               work_experience: portfolio_param[:work_experience]
             )
-  
+
             unless portfolio.save
               raise ActiveRecord::Rollback
             end
-  
+
             # Attach multiple images for this portfolio
-            portfolio_param[:work_images]&.each do |img|
-              portfolio.images.attach(img)
+            if portfolio_param[:work_images].present?
+              portfolio_param[:work_images].each do |img|
+                portfolio.images.attach(img)
+              end
             end
           end
         end
-  
+
         render json: VendorSerilizers::VendorProfileShowSerializer.new(profile).serializable_hash, status: :created
       else
         render json: { success: false, errors: profile.errors.full_messages }, status: :unprocessable_entity
       end
     end
   end
-  
   private
   
   def vendor_profile_params
