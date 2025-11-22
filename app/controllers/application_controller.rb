@@ -1,7 +1,12 @@
 class ApplicationController < ActionController::API
     include ActionController::RequestForgeryProtection
+    skip_forgery_protection
+    # include ApiAuthentication
 
-    skip_forgery_protection 
+    # Skip authentication for public routes like login/signup
+    # skip_before_action :authenticate_user_from_token!, only: [:login, :signup]
+
+    # skip_forgery_protection 
 
 def current_user
         header = request.headers['Authorization']

@@ -8,6 +8,7 @@ class SubService < ApplicationRecord
 
   has_one_attached :sub_service_image
 
+  # scope :by_city, ->(city) { where(city: city) }
   # validate :vendor_profile_must_exist, on: :create
   validate :city
   validate :description

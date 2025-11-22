@@ -32,6 +32,7 @@ Rails.application.routes.draw do
         resources :service_icons, only: [:index, :show, :create, :update, :destroy]
         resources :sub_services, only: [:index, :show, :create, :update, :destroy]
         get 'sub_services_by_service/:id', to: 'sub_services#sub_services_by_service'
+        get 'sub_services/search_by_city/:city', to: 'sub_services#search_by_city'
       end
       # Do not nest duplicate namespace :customer, only declare resources once
     end

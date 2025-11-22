@@ -57,20 +57,15 @@ gem 'sidekiq' # Background job processing
 
 gem 'jsonapi-serializer'
 
-
-  gem 'faker' # Fake data generator
-
+gem 'faker' # Fake data generator
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-  # gem 'pry-rails'    # Makes 'pry' your default console
-  # gem 'pry-byebug'
 
   gem 'awesome_print'
   gem 'byebug', '~> 11.1', '>= 11.1.3'
   gem 'google-id-token'
-
 
  gem 'dotenv-rails'
 
@@ -80,6 +75,7 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 end
-
+# Gemfile
+gem 'kaminari'
 gem 'active_model_serializers', '~> 0.10.13'
 gem "omniauth-rails_csrf_protection", "~> 1.0"
