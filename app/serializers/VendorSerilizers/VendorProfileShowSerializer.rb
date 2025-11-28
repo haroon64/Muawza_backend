@@ -2,20 +2,22 @@ module VendorSerilizers
     class VendorProfileShowSerializer < ActiveModel::Serializer
       include Rails.application.routes.url_helpers
   
-      attributes :phone_number,
+      attributes :id,
+                 :phone_number,
+                 :full_name,
                  :second_phone_number,
                  :address,
                  :latitude,
                  :longitude,
                  :profile_image,
-                 :vendor_portfolio
+                 :vendor_portfolios
   
       def profile_image
         return nil unless object.profile_image.attached?
         rails_blob_url(object.profile_image, only_path: false)
       end
   
-      def vendor_portfolio
+      def vendor_portfolios
         object.vendor_portfolios.map do |vp|
           {
             id: vp.id,

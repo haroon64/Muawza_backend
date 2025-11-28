@@ -3,6 +3,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      patch "users/:id/update_role", to: "users/users#update_role"
+    end
+  end
+  
+  namespace :api do
+    namespace :v1 do
       # Only use RESTful resource routing for customer_profiles; remove explicit custom GETs
       namespace :customer do
         resources :customer_profiles, only: [:index, :show, :create, :update, :destroy]
@@ -34,7 +40,7 @@ Rails.application.routes.draw do
         get 'sub_services_by_service/:id', to: 'sub_services#sub_services_by_service'
         get 'sub_services/search_by_city/:city', to: 'sub_services#search_by_city'
       end
-      # Do not nest duplicate namespace :customer, only declare resources once
+
     end
   end
 end

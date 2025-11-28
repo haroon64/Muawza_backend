@@ -15,4 +15,13 @@ class VendorProfile < ApplicationRecord
 #   validates :full_name, presence: true
   validates :address, presence: true
   validates :phone_number, presence: true
+
+  validate :must_have_at_least_one_portfolio
+
+def must_have_at_least_one_portfolio
+  if vendor_portfolios.empty?
+    errors.add(:vendor_portfolios, "must include at least one portfolio")
+  end
+end
+
 end

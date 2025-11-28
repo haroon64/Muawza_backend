@@ -1,5 +1,7 @@
 class Api::V1::Services::ServiceIconsController < ApplicationController
+    # include ApiAuthentication
     include Rails.application.routes.url_helpers
+    
   
     before_action :set_service, only: [:show, :update, :destroy]
   

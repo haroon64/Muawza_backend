@@ -2,9 +2,9 @@ module ServiceSerilalizers
   class SubServiceCreateSerializer < ActiveModel::Serializer
     include Rails.application.routes.url_helpers
 
-    attributes :id, :service_id, :sub_service_name, :description, :city ,
+    attributes :id, :service_id, :sub_service_name, :description,
                :price, :price_bargain, :active_status,
-               :created_at, :updated_at, :cover_image_url
+               :created_at, :updated_at, :cover_image_url , :address
             #    :vendor_profile 
 
     # Return the name of the service instead of its ID
@@ -12,13 +12,24 @@ module ServiceSerilalizers
     #   object.service.try(:service_name) 
     # end
 
+
+    def address
+      return nil unless object.address.present?
+      {
+        city: object.address.city,
+        longitude: object.address.longitude,
+        latitude: object.address.latitude,
+        address: object.address.address
+      }
+    end
+
     # NESTED VENDOR PROFILE INFO
     def vendor_profile
       {
-        id: object.vendor_profile.id,
+       
         full_name: object.vendor_profile.full_name,
         phone_number: object.vendor_profile.phone_number,
-        address: object.vendor_profile.address
+
       }
     end
 

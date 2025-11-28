@@ -1,47 +1,73 @@
 class Api::V1::Services::SubServicesController < ApplicationController
   include Rails.application.routes.url_helpers
-#   include ApiAuthentication
+  # include ApiAuthentication
 
   # Uncomment this if you want set_sub_service before show, update, destroy
   # before_action :set_sub_service, only: [:show, :update, :destroy]
 
   # GET /api/v1/sub_services
   def index
+    puts "------------1"
     sub_services = SubService.all
-
+    puts "------------2"
+  
     # FILTERS
-    sub_services = sub_services.where(city: params[:city]) if params[:city].present?
-    
+    if params[:city].present?
+      sub_services = sub_services.joins(:address).where(addresses: { city: params[:city] })
+    end
+  
     if params[:sub_service_name].present?
       sub_services = sub_services.where("sub_service_name ILIKE ?", "%#{params[:sub_service_name]}%")
+      puts "------------5"
     end
-
-    # Add filter for service_name by joining Service
+  
     if params[:service_name].present?
       sub_services = sub_services.joins(:service).where("services.service_name ILIKE ?", "%#{params[:service_name]}%")
+      puts "------------6"
     end
-
+  
     if params[:price_min].present? && params[:price_max].present?
       sub_services = sub_services.where(price: params[:price_min]..params[:price_max])
     end
-
+  
+    # NEW: Filter by radius (10 km)
+    if params[:latitude].present? && params[:longitude].present?
+      lat = params[:latitude].to_f
+      lng = params[:longitude].to_f
+      radius_km = 30
+  
+      # Haversine formula in SQL
+      sub_services = sub_services.joins(:address).where(
+        <<-SQL, lat: lat, lng: lng, radius: radius_km
+          6371 * acos(
+            cos(radians(:lat)) * cos(radians(addresses.latitude)) *
+            cos(radians(addresses.longitude) - radians(:lng)) +
+            sin(radians(:lat)) * sin(radians(addresses.latitude))
+          ) <= :radius
+        SQL
+      )
+    end
+  
+    puts "------------7"
+  
     # PAGINATION
     page = (params[:page] || 1).to_i
     per_page = (params[:per_page] || 10).to_i
-
+  
     paginated_sub_services = sub_services.page(page).per(per_page)
-
-    meta = {
-      current_page: paginated_sub_services.current_page,
-      total_pages: paginated_sub_services.total_pages,
-      total_count: paginated_sub_services.total_count
-    }
-
-    # RENDER JSON using each_serializer, not with plain serializer
-    render json: paginated_sub_services, 
-           each_serializer: ServiceSerilalizers::SubServiceShowSerializer,
-           meta: meta,
-           status: :ok
+  
+    # meta = {
+    #   current_page: paginated_sub_services.current_page,
+    #   total_pages: paginated_sub_services.total_pages,
+    #   total_count: paginated_sub_services.total_count
+    # }
+  
+    render json: {
+      sub_services: ActiveModelSerializers::SerializableResource.new(
+        paginated_sub_services, each_serializer: ServiceSerilalizers::SubServiceShowSerializer
+      ),
+      total_sub_services: SubService.count
+    }, status: :ok
   end
   
   
@@ -49,7 +75,7 @@ class Api::V1::Services::SubServicesController < ApplicationController
   # GET /api/v1/sub_services/:id
   def show
     sub_service = SubService.find_by(id: params[:id])
-
+  
     if sub_service
       render json: ServiceSerilalizers::SubServiceShowSerializer.new(sub_service).serializable_hash, status: :found
     else
@@ -77,43 +103,50 @@ class Api::V1::Services::SubServicesController < ApplicationController
   end
   # Search SubServices by city. Expects params[:city] in the request.
   # GET /api/v1/services/sub_services/search_by_city?city=CityName
-  def search_by_city
-    city = params[:city]
 
-    if city.blank?
-      render json: { errors: ["Please provide a city parameter."] }, status: :bad_request and return
-    end
-
-    sub_services = SubService.where(city: city)
-
-    if sub_services.any?
-      render json: sub_services, each_serializer: ServiceSerilalizers::SubServiceIndexSerializer, status: :ok
-    else
-      render json: { message: "No  services found for city '#{city}'." }, status: :not_found
-    end
-  end
 
   def create
-    puts "inside create"
     user_id = params[:user_id]
     vendor_profile = VendorProfile.find_by(user_id: user_id)
+
     unless vendor_profile
-      render json: { errors: ["Vendor profile not found for given user_id"] }, status: :not_found and return
+      render json: { errors: ["Vendor profile not found for given user_id"] },
+             status: :not_found and return
     end
 
-    # Exclude :user_id and :cover_image since they are not model columns
-    sub = SubService.new(sub_service_params.except(:user_id, :cover_image).merge(vendor_profile_id: vendor_profile.id))
-    # Handle ActiveStorage cover image attachment if provided
-    if params[:cover_image].present?
-      sub.sub_service_image.attach(params[:cover_image])
-    end
+    # SubService model does NOT have a user_id attribute!
+    # Only permit allowed attributes, DO NOT pass user_id to SubService.new
+
+    # Remove :user_id from params permitted for SubService, only use vendor_profile_id
+    sub_service_data = sub_service_params.except(:cover_image, :address, :city, :latitude, :longitude,:user_id)
+
+    sub = SubService.new(sub_service_data.merge(vendor_profile_id: vendor_profile.id))
+    puts "-----------6"
+  
+    # Attach image
+    sub.sub_service_image.attach(params[:cover_image]) if params[:cover_image].present?
 
     if sub.save
-      render json: ServiceSerilalizers::SubServiceCreateSerializer.new(sub).serializable_hash, status: :created
+      # Create Address directly from FormData if present
+      if params[:address].present?
+        sub.create_address(
+          address: params[:address],
+          city: params[:city],
+          latitude: params[:latitude],
+          longitude: params[:longitude]
+        )
+         puts "-----------7"
+      end
+
+      render json: ServiceSerilalizers::SubServiceCreateSerializer.new(sub).serializable_hash,
+             status: :created
+              puts "-----------8"
+
     else
       render json: { errors: sub.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
 
   # PUT/PATCH /api/v1/sub_services/:id
   def update
@@ -142,8 +175,24 @@ class Api::V1::Services::SubServicesController < ApplicationController
   end
 
   def sub_service_params
-    params.permit(:service_id, :user_id, :sub_service_name, :description, :city, :price, :price_bargain, :active_status, :cover_image)
+    params.permit(
+      :service_id,
+      :user_id,
+      :sub_service_name,
+      :description,
+      :price,
+      :price_bargain,
+      :active_status,
+      :cover_image,
+      
+      # Address fields sent individually
+      :address,
+      :city,
+      :latitude,
+      :longitude
+    )
   end
+  
 
   def attach_images(sub)
     return unless params[:images].present?

@@ -2,13 +2,15 @@ module CustomerSerilizers
 class CustomerProfileShowSerializer < ActiveModel::Serializer
     include Rails.application.routes.url_helpers
   
-    attributes :phone_number,
+    attributes :full_name,
+               :phone_number,
                :address,
                :latitude,
                :gender,
                :longitude,
                :profile_image,
                :user_id
+
   
     def profile_image
       return nil unless object.profile_image.attached?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_26_080516) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "addresses", force: :cascade do |t|
+    t.string "address"
+    t.string "city"
+    t.decimal "latitude"
+    t.decimal "longitude"
+    t.bigint "sub_service_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sub_service_id"], name: "index_addresses_on_sub_service_id"
   end
 
   create_table "bookings", force: :cascade do |t|
@@ -145,7 +156,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "vendor_profile_id", null: false
-    t.string "city"
     t.index ["service_id"], name: "index_sub_services_on_service_id"
     t.index ["vendor_profile_id"], name: "index_sub_services_on_vendor_profile_id"
   end
@@ -160,7 +170,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
     t.datetime "updated_at", null: false
     t.integer "role", default: 0, null: false
     t.string "full_name", default: "", null: false
-    t.string "phone_number", default: "", null: false
+    t.string "phone_number"
     t.string "provider"
     t.string "uid"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -194,6 +204,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_115245) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "addresses", "sub_services"
   add_foreign_key "bookings", "customer_profiles"
   add_foreign_key "bookings", "sub_services"
   add_foreign_key "customer_profiles", "users"

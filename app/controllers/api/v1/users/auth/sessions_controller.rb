@@ -1,11 +1,11 @@
 # app/controllers/api/v1/users/auth/sessions_controller.rb
 class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
   respond_to :json
-  # skip_before_action :verify_authenticity_token
+
 
   # POST /api/v1/signin
   def create
-    # Check if parameters are present first
+
     if sign_in_params[:user].nil?
       return render json: {
         status: { code: 400, message: 'User parameters are required.' }
@@ -26,7 +26,8 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
 
     if user&.valid_password?(sign_in_params[:user][:password])
       # Generate JWT token
-      token = generate_jwt_token(user)
+      token = JwtService.encode(user_id: user.id)
+
 
       render json: {
         status: { code: 200, message: 'Signed in successfully.' },
@@ -71,6 +72,7 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
   end
 
   def generate_jwt_token(user)
+
     # Simple JWT implementation - adjust as needed
     payload = {
       user_id: user.id,

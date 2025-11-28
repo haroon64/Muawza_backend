@@ -6,6 +6,6 @@ module CustomerSerilizers
     set_type :customer_profile
 
     # Only include the fields you want in the JSON response
-    attributes :phone_number, :address, :latitude, :longitude, :user_id
+    attributes :full_name , :phone_number, :address, :latitude, :longitude, :user_id
   end
 end
