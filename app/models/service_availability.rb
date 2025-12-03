@@ -1,3 +1,3 @@
 class ServiceAvailability < ApplicationRecord
-  belongs_to :service
+  belongs_to :sub_services
 end

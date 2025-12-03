@@ -3,7 +3,6 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
   respond_to :json
 
 
-  # POST /api/v1/signin
   def create
 
     if sign_in_params[:user].nil?
@@ -25,9 +24,7 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
            User.find_by(phone_number: login_param, role: role_param)
 
     if user&.valid_password?(sign_in_params[:user][:password])
-      # Generate JWT token
       token = JwtService.encode(user_id: user.id)
-
 
       render json: {
         status: { code: 200, message: 'Signed in successfully.' },
@@ -49,12 +46,10 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
     end
   end
 
-  # DELETE /api/v1/signout
   def destroy
     token = request.headers['Authorization']&.split(' ')&.last
 
     if token.present?
-      # Here you can add token revocation logic if needed
       render json: {
         status: { code: 200, message: 'Signed out successfully.' }
       }, status: :ok
@@ -71,14 +66,4 @@ class Api::V1::Users::Auth::SessionsController < Devise::SessionsController
     params.permit(user: [:email, :phone_number, :password, :role])
   end
 
-  def generate_jwt_token(user)
-
-    # Simple JWT implementation - adjust as needed
-    payload = {
-      user_id: user.id,
-      role: user.role,
-      exp: 24.hours.from_now.to_i
-    }
-    JWT.encode(payload, Rails.application.credentials.secret_key_base)
-  end
 end

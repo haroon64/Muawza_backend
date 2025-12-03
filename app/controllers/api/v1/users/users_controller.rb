@@ -2,7 +2,6 @@ class Api::V1::Users::UsersController < ApplicationController
   before_action :set_user
 
   def update_role
-    puts "INSIDE CONTROLLER --------"
     if @user.update(role: params[:role])
       render json: { status: "success", message: "Role updated successfully", user: @user }
     else

@@ -1,5 +1,4 @@
-# Clear existing services
-Service.destroy_all
+
 
 # Seed services with icons
 services_data = [

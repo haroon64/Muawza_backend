@@ -2,7 +2,7 @@ class Api::V1::Users::Auth::RegistrationsController < Devise::RegistrationsContr
   respond_to :json
 
   def create
-    Rails.logger.info { "Signup params: #{request.filtered_parameters}" }
+
     build_resource(sign_up_params)
 
     resource.save

@@ -2,7 +2,7 @@ module ApiAuthentication
     extend ActiveSupport::Concern
   
     included do
-      before_action :authenticate_user_from_token!
+     puts '123'
     end
     
     private
@@ -10,22 +10,20 @@ module ApiAuthentication
     def authenticate_user_from_token!
       token = request.headers['Authorization']&.split(' ')&.last
 
-      puts "----token#{token}"
+
 
       if token
         begin
         decoded = JwtService.decode(token)
 
         rescue => e
-          puts "---Decode Error: #{e.message}"
+
           render json: { error: 'Invalid or expired token' }, status: :unauthorized and return
         end
-        puts "---#{decoded}"
         if decoded
 
-            
           @current_user = User.find_by(id: decoded[:user_id])
-          puts "-----#{current_user}"
+
           
           unless @current_user
             render json: { error: 'User not found' }, status: :unauthorized

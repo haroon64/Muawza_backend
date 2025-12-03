@@ -18,7 +18,7 @@ class User < ApplicationRecord
   private
 
   def set_default_role
-    puts "----inside "
+
     self.role ||= :customer
   end
 
@@ -56,7 +56,7 @@ class User < ApplicationRecord
         email: email,
         full_name: full_name,
        
-        password: Devise.friendly_token[0, 20],  # Google signup user gets auto password
+        password: Devise.friendly_token[0, 20], 
         provider: provider,
         uid: uid,
  
@@ -70,16 +70,6 @@ class User < ApplicationRecord
     user
   end
 
-  # def generate_jwt
-  #   puts "==================="
-  #   payload = {
-  #     user_id: id,
-  #     email: email,
-  #     exp: 24.hours.from_now.to_i
-  #   }
-    
-  #   JWT.encode(payload, Rails.application.credentials.secret_key_base || ENV['SECRET_KEY_BASE'])
-  # end
 
   def self.decode_jwt(token)
     decoded = JWT.decode(

@@ -10,5 +10,6 @@ class CreateSubServices < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
+    add_index :sub_services, :sub_service_name, unique: true
   end
 end

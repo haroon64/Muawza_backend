@@ -1,8 +1,10 @@
+# JwtService is responsible for generating (encoding) and verifying (decoding) JSON Web Tokens (JWTs).
+# JWTs are used for securely transmitting information between parties as JSON objects, commonly for authentication.
 class JwtService
-    puts "---------1 #{ENV['DEV_JWT_SECRET_KEY']}"
-    SECRET_KEY =  ENV['DEV_JWT_SECRET_KEY']
-    puts"---------#{SECRET_KEY}"
-    raise "JWT Secret key missing! Set ENV['DEV_JWT_SECRET_KEY']" unless SECRET_KEY.present?
+
+  # Uses a secret key from environment variable to sign and verify JWTs
+  SECRET_KEY = ENV['DEV_JWT_SECRET_KEY']
+  raise "JWT Secret key missing! Set ENV['DEV_JWT_SECRET_KEY']" unless SECRET_KEY.present?
 
 
     def self.encode(payload, exp = 24.hours.from_now)

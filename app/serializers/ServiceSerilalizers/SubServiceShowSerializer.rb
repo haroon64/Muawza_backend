@@ -8,14 +8,14 @@ module ServiceSerilalizers
                  :vendor_profile , :address
 
       def address
-      return nil unless object.address.present?
-      {
-        city: object.address.city,
-        longitude: object.address.longitude,
-        latitude: object.address.latitude,
-        address: object.address.address
-      }
+        return nil unless object.address.present?
 
+        {
+          city: object.address.city,
+          longitude: object.address.longitude,
+          latitude: object.address.latitude,
+          address: object.address.address
+        }
       end
 
       def service_name
@@ -29,7 +29,7 @@ module ServiceSerilalizers
           phone_number: object.vendor_profile.phone_number,
         }
       end
-  
+
       def cover_image_url
         return nil unless object.sub_service_image.attached?
         rails_blob_url(object.sub_service_image, only_path: false)

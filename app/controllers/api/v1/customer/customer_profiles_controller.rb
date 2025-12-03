@@ -71,7 +71,6 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
       render json: { success: false, errors: profile.errors.full_messages }, status: :unprocessable_entity
     end
   end
-
   # DELETE 
   def destroy
     profile = CustomerProfile.find_by(user_id: params[:id])

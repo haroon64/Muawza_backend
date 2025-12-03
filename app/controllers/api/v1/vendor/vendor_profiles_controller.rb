@@ -9,7 +9,6 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
 
   def show
     profile = VendorProfile.find_by(user_id: params[:id])
-
     if profile
       render json: { exists: true, profile: VendorSerilizers::VendorProfileShowSerializer.new(profile).as_json }, status: :ok
     else
@@ -43,12 +42,11 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
       end
       portfolios << { portfolio: portfolio, work_images: portfolio_param[:work_images] }
     end
-
-    # Check the vendor profile itself and portfolio credentials together
+  
     if profile.valid? && portfolio_errors.empty?
       ActiveRecord::Base.transaction do
         profile.save!
-        # Now save portfolios and attach images
+
         portfolios.each do |entry|
           portfolio = entry[:portfolio]
           portfolio.vendor_profile_id = profile.id
@@ -68,35 +66,21 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
  
   
   def update
-    puts "-----------update"
     vendor_profile = VendorProfile.find(params[:id])
-        puts "-----------update-1"
-    # Update basic vendor profile attributes (excluding portfolios and image)
     vendor_profile.assign_attributes(vendor_profile_params.except(:profile_image, :vendor_portfolios))
-       puts "-----------update-2"
-
-    # Handle profile image update if provided
+    
     if vendor_profile_params[:profile_image].present?
       vendor_profile.profile_image.attach(vendor_profile_params[:profile_image])
-         puts "-----------update-3"
     end
-       puts "-----------update-4"
-
     portfolios_params = vendor_profile_params[:vendor_portfolios] || {}
-   puts "-----------update-5"
-    # Update portfolios if present in the params
+  
     unless portfolios_params.empty?
-      
-      # Accept either Hash with string keys or Array
-      # Remove all current portfolios and replace with new ones for simplicity
+
       vendor_profile.vendor_portfolios.destroy_all
-puts "-----------update-6"
       portfolios_params.each_value do |portfolio_param|
         portfolio = vendor_profile.vendor_portfolios.build(
           work_experience: portfolio_param[:work_experience]
         )
-        puts "-----------update-7"
-        # Attach new images if provided
         if portfolio_param[:work_images].present?
           portfolio_param[:work_images].each { |img| portfolio.images.attach(img) }
         end
@@ -148,9 +132,9 @@ def vendor_profile_params
 end
 
 
-  def vendor_params
-    params.require(:vendor_profile).permit(:user_id, :full_name, :address, :latitude, :longitude, :phone_number, :second_phone_number, :profile_image, :cnic_front, :cnic_back)
-  end
+  # def vendor_params
+  #   params.require(:vendor_profile).permit(:user_id, :full_name, :address, :latitude, :longitude, :phone_number, :second_phone_number, :profile_image, :cnic_front, :cnic_back)
+  # end
 end
 
 
