@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_03_082729) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_04_142303) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -65,6 +65,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_03_082729) do
     t.index ["customer_profile_id"], name: "index_bookings_on_customer_profile_id"
     t.index ["sub_service_id", "scheduled_date", "scheduled_time"], name: "index_bookings_on_sub_service_and_schedule"
     t.index ["sub_service_id"], name: "index_bookings_on_sub_service_id"
+  end
+
+  create_table "categories", force: :cascade do |t|
+    t.string "sub_service_name", null: false
+    t.bigint "service_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["service_id"], name: "index_categories_on_service_id"
   end
 
   create_table "customer_profiles", force: :cascade do |t|
@@ -208,6 +216,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_03_082729) do
   add_foreign_key "addresses", "sub_services"
   add_foreign_key "bookings", "customer_profiles"
   add_foreign_key "bookings", "sub_services"
+  add_foreign_key "categories", "services"
   add_foreign_key "customer_profiles", "users"
   add_foreign_key "favourites", "customer_profiles"
   add_foreign_key "favourites", "sub_services"
