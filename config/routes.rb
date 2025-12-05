@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         get "sub_services_by_service/:id", to: "sub_services#sub_services_by_service"
         get "sub_services_by_vendor/:id", to: "sub_services#sub_services_by_vendor"
         get "sub_services/search_by_city/:city", to: "sub_services#search_by_city"
+        delete "delete_by_sub_service_id/:id", to: "sub_services#delete_by_sub_service_id"
       end
     end
   end

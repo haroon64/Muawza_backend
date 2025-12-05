@@ -101,11 +101,25 @@ class Api::V1::Services::SubServicesController < ApplicationController
       render json: { exists: false, message: "Vendor profile not found for given user_id" }, status: :not_found and return
     end
 
-    sub_services = SubService.where(vendor_profile_id: vendor_profile.id)
+    sub_services = SubService.where(vendor_profile_id: vendor_profile.id).order(created_at: :desc)
     render json: sub_services.map {
       |ss| ServiceSerilalizers::SubServiceShowSerializer.new(ss).serializable_hash
     }, status: :ok
   end
+
+  def delete_by_sub_service_id
+    service_id = params[:id]
+
+    sub_service = SubService.find_by(id: service_id)
+    if sub_service
+      sub_service.destroy
+      render json: { message: "Sub Service deleted successfully" }, status: :ok
+    else
+      render json: { errors: [ "Sub Service not found" ] }, status: :not_found
+    end
+  end
+
+
 
   def update
     if @sub_service.update(sub_service_params.except(:cover_image))
