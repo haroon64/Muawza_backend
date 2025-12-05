@@ -66,7 +66,7 @@ class Api::V1::Services::SubServicesController < ApplicationController
     vendor_profile = VendorProfile.find_by(user_id: user_id)
 
     unless vendor_profile
-      render json: { errors: ["Vendor profile not found for given user_id"] },
+      render json: { errors: [ "Vendor profile not found for given user_id" ] },
              status: :not_found and return
     end
 
@@ -91,6 +91,22 @@ class Api::V1::Services::SubServicesController < ApplicationController
     end
   end
 
+  def sub_services_by_vendor
+    user_id = params[:id]
+    puts "user_id ===>#{user_id}"
+
+    vendor_profile = VendorProfile.find_by(user_id: user_id)
+    puts "vendor_profile =====#{vendor_profile}"
+    unless vendor_profile
+      render json: { exists: false, message: "Vendor profile not found for given user_id" }, status: :not_found and return
+    end
+
+    sub_services = SubService.where(vendor_profile_id: vendor_profile.id)
+    render json: sub_services.map {
+      |ss| ServiceSerilalizers::SubServiceShowSerializer.new(ss).serializable_hash
+    }, status: :ok
+  end
+
   def update
     if @sub_service.update(sub_service_params.except(:cover_image))
       if params[:cover_image].present?
@@ -103,6 +119,7 @@ class Api::V1::Services::SubServicesController < ApplicationController
       render json: { errors: @sub_service.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
 
   def destroy
     @sub_service.destroy
