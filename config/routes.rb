@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       end
       namespace :vendor do
         resources :vendor_profiles, only: [ :index, :show, :create, :update, :destroy ]
+         get "vendor_by_id/:id", to: "vendor_profiles#vendor_by_id"
       end
 
       # Devise routes
@@ -31,6 +32,10 @@ Rails.application.routes.draw do
           omniauth_callbacks: "api/v1/users/auth/omniauth_callbacks"
         },
         defaults: { format: :json }
+        namespace :conversations do
+          resources :conversations, only: [ :show, :create, :update, :destroy ]
+          resources :messages, only: [  :show, :create, :update, :destroy ]
+        end
 
       namespace :services do
         resources :service_icons, only: [ :index, :show, :create, :update, :destroy ]
@@ -39,6 +44,7 @@ Rails.application.routes.draw do
         get "sub_services_by_service/:id", to: "sub_services#sub_services_by_service"
         get "sub_services_by_vendor/:id", to: "sub_services#sub_services_by_vendor"
         get "sub_services/search_by_city/:city", to: "sub_services#search_by_city"
+        get "sub_services_by_vendor_id/:id", to: "sub_services#sub_services_by_vendor_id"
         delete "delete_by_sub_service_id/:id", to: "sub_services#delete_by_sub_service_id"
       end
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_04_142303) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_08_111540) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -75,6 +75,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_04_142303) do
     t.index ["service_id"], name: "index_categories_on_service_id"
   end
 
+  create_table "conversations", force: :cascade do |t|
+    t.bigint "customer_id"
+    t.bigint "vendor_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "customer_profiles", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "full_name", null: false
@@ -99,6 +106,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_04_142303) do
     t.index ["customer_profile_id", "sub_service_id"], name: "index_favourites_on_customer_and_sub_service", unique: true
     t.index ["customer_profile_id"], name: "index_favourites_on_customer_profile_id"
     t.index ["sub_service_id"], name: "index_favourites_on_sub_service_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.text "body"
+    t.bigint "chat_room_id", null: false
+    t.bigint "sender_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chat_room_id"], name: "index_messages_on_chat_room_id"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -220,6 +236,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_04_142303) do
   add_foreign_key "customer_profiles", "users"
   add_foreign_key "favourites", "customer_profiles"
   add_foreign_key "favourites", "sub_services"
+  add_foreign_key "messages", "conversations", column: "chat_room_id"
   add_foreign_key "payments", "bookings"
   add_foreign_key "reviews", "customer_profiles"
   add_foreign_key "reviews", "sub_services"

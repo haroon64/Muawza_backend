@@ -1,14 +1,8 @@
-class Api::V1::Chat::MessagesController < ApplicationController
+class Api::V1::Conversations::MessagesController < ApplicationController
+    before_action :set_message, only: [ :show, :update, :destroy ]
 
-    before_action :set_message, only: [:show, :update, :destroy]
 
-    # GET /api/v1/chat/messages
-    def index
-      @messages = Message.all
-      render json: @messages
-    end
 
-    # GET /api/v1/chat/messages/:id
     def show
       render json: @message
     end
@@ -58,5 +52,4 @@ class Api::V1::Chat::MessagesController < ApplicationController
     def message_params
       params.require(:message).permit(:body, :chat_room_id, :sender_id)
     end
-  end
-
+end
