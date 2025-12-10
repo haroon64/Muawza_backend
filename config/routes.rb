@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  mount ActionCable.server => "/cable"
   get "up" => "rails/health#show", as: :rails_health_check
 
   namespace :api do
@@ -33,9 +34,19 @@ Rails.application.routes.draw do
         },
         defaults: { format: :json }
         namespace :conversations do
-          resources :conversations, only: [ :show, :create, :update, :destroy ]
-          resources :messages, only: [  :show, :create, :update, :destroy ]
+          resources :conversations, only: [ :show, :create, :update, :destroy ] do
+            resources :messages, only: [ :index, :create ]
+            collection do
+              get "customer/:customer_id", to: "conversations#customer_conversations"
+              get "vendor/:vendor_id", to: "conversations#vendor_conversations"
+              get "unread_count/:user_id", to: "conversations#unread_count"
+            end
+
+            # mark messages of a specific conversation as read
+            post "mark_read", to: "messages#mark_read"
+          end
         end
+
 
       namespace :services do
         resources :service_icons, only: [ :index, :show, :create, :update, :destroy ]

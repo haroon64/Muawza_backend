@@ -1,20 +1,22 @@
 
 module ConversationSerializers
   class ConversationShowSerializer < ActiveModel::Serializer
-    attributes :id, :customer_id, :vendor_id,  :vendor_profile
+    attributes :id, :customer_id, :vendor_id, :vendor_profile, :sub_service
 
-    # def customer_profile
-    #   customer = CustomerProfile.find_by(id: object.customer_id)
-    #   if customer
-    #     {
-    #       id: customer.id,
-    #       full_name: customer.full_name,
-    #       profile_image: customer.profile_image.attached? ? Rails.application.routes.url_helpers.rails_blob_url(customer.profile_image, only_path: true) : nil
-    #     }
-    #   else
-    #     nil
-    #   end
-    # end
+    def sub_service
+      sub_service = SubService.find_by(id: object.sub_service_id)
+      if sub_service
+        {
+          id: sub_service.id,
+          sub_service_name: sub_service.sub_service_name,
+          price: sub_service.price,
+          price_bargain: sub_service.price_bargain,
+          sub_service_image: sub_service.sub_service_image.attached? ? Rails.application.routes.url_helpers.rails_blob_url(sub_service.sub_service_image, only_path: true) : nil
+        }
+      else
+        nil
+      end
+    end
 
     def vendor_profile
       vendor = VendorProfile.find_by(id: object.vendor_id)

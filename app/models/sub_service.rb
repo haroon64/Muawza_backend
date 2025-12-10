@@ -6,6 +6,7 @@ class SubService < ApplicationRecord
   has_many :bookings, dependent: :destroy
   has_many :reviews, dependent: :destroy
   has_one :address
+  has_many :conversations, dependent: :destroy
 
   has_one_attached :sub_service_image
   has_one :address, dependent: :destroy
