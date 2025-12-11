@@ -81,4 +81,4 @@ end
 # Gemfile
 gem "kaminari"
 gem "active_model_serializers", "~> 0.10.13"
-gem "omniauth-rails_csrf_protection", "~> 1.0"
+gem "omniauth-rails_csrf_protection", "~> 2.0"
