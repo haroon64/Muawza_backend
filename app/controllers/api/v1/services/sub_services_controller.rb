@@ -4,6 +4,7 @@ class Api::V1::Services::SubServicesController < ApplicationController
   def index
     sub_services = SubService.all
 
+    # byebug
     if params[:city].present?
       sub_services = sub_services.joins(:address).where(addresses: { city: params[:city] })
     end
@@ -36,6 +37,7 @@ class Api::V1::Services::SubServicesController < ApplicationController
     }, status: :ok
   end
 
+
   def show
     sub_service = SubService.find_by(id: params[:id])
 
@@ -46,6 +48,8 @@ class Api::V1::Services::SubServicesController < ApplicationController
       render json: { exists: false, message: "SubService not found" }, status: :not_found
     end
   end
+
+
 
   def sub_services_by_service
     service_id = params[:id]
@@ -91,21 +95,30 @@ class Api::V1::Services::SubServicesController < ApplicationController
     end
   end
 
-  def sub_services_by_vendor
-    user_id = params[:id]
-    puts "user_id ===>#{user_id}"
-
-    vendor_profile = VendorProfile.find_by(user_id: user_id)
-    puts "vendor_profile =====#{vendor_profile}"
+  def sub_services_by_vendor_id
+    vendor_profile = VendorProfile.find_by(id: params[:id])
     unless vendor_profile
       render json: { exists: false, message: "Vendor profile not found for given user_id" }, status: :not_found and return
     end
-
     sub_services = SubService.where(vendor_profile_id: vendor_profile.id).order(created_at: :desc)
     render json: sub_services.map {
       |ss| ServiceSerilalizers::SubServiceShowSerializer.new(ss).serializable_hash
     }, status: :ok
   end
+
+
+  def sub_services_by_vendor
+    user_id = params[:id]
+    vendor_profile = VendorProfile.find_by(user_id: user_id)
+    unless vendor_profile
+      render json: { exists: false, message: "Vendor profile not found for given user_id" }, status: :not_found and return
+    end
+    sub_services = SubService.where(vendor_profile_id: vendor_profile.id).order(created_at: :desc)
+    render json: sub_services.map {
+      |ss| ServiceSerilalizers::SubServiceShowSerializer.new(ss).serializable_hash
+    }, status: :ok
+  end
+
 
   def delete_by_sub_service_id
     service_id = params[:id]
@@ -122,20 +135,41 @@ class Api::V1::Services::SubServicesController < ApplicationController
 
 
   def update
-    if @sub_service.update(sub_service_params.except(:cover_image))
+    @sub_service = SubService.find_by(id: params[:id])
+    unless @sub_service
+      render json: { errors: [ "Sub Service not found" ] }, status: :not_found and return
+    end
+    update_attrs = sub_service_params.except(:user_id, :cover_image, :address, :city, :latitude, :longitude)
+    if @sub_service.update(update_attrs)
       if params[:cover_image].present?
         @sub_service.sub_service_image.purge if @sub_service.sub_service_image.attached?
         @sub_service.sub_service_image.attach(params[:cover_image])
       end
+      if params[:address].present?
+        address_attrs = {
+          address: params[:address],
+          city: params[:city],
+          latitude: params[:latitude],
+          longitude: params[:longitude]
+        }
+        if @sub_service.address.present?
+          @sub_service.address.update(address_attrs)
+        else
+          @sub_service.create_address(address_attrs)
+        end
+      end
 
-      render json: serialize_sub_service(@sub_service)
+      render json: ServiceSerilalizers::SubServiceShowSerializer.new(@sub_service).serializable_hash, status: :ok
     else
       render json: { errors: @sub_service.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
-
   def destroy
+    @sub_service = SubService.find_by(id: params[:id])
+    unless @sub_service
+      render json: { errors: [ "Sub Service not found" ] }, status: :not_found and return
+    end
     @sub_service.destroy
     render json: { message: "Sub Service deleted successfully" }
   end
