@@ -67,7 +67,7 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
   gem "awesome_print"
-  gem "byebug", "~> 11.1", ">= 11.1.3"
+  gem "byebug", "~> 12.0"
   gem "google-id-token"
 
  gem "dotenv-rails"
