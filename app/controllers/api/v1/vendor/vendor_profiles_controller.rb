@@ -16,126 +16,268 @@ class Api::V1::Vendor::VendorProfilesController < ApplicationController
     end
   end
 
+  def vendor_by_id
+    profile = VendorProfile.find_by(id: params[:id])
+    if profile
+      render json: { exists: true, profile: VendorSerilizers::VendorProfileShowSerializer.new(profile).as_json }, status: :ok
+    else
+      render json: { exists: false, message: "Profile not found" }, status: :not_found
+    end
+  end
+
   def create
-    user_id = vendor_profile_params[:user_id]
-    user = User.find(user_id)
+    user_id = vendor_profile_create_params[:user_id]
+    user = User.find_by(id: user_id)
+
+    unless user
+      render json: { success: false, message: "User not found" }, status: :not_found
+      return
+    end
 
     existing_profile = VendorProfile.find_by(user_id: user_id)
     if existing_profile
       render json: { success: false, message: "Profile already exists" }, status: :unprocessable_entity
       return
     end
-    profile = VendorProfile.new(vendor_profile_params.except(:profile_image, :vendor_portfolios))
-    profile.profile_image.attach(vendor_profile_params[:profile_image]) if vendor_profile_params[:profile_image].present?
-    portfolios_params = vendor_profile_params[:vendor_portfolios] || []
-    if portfolios_params.empty?
-      return render json: { success: false, errors: ["At least one portfolio is required"] }, status: :unprocessable_entity
-    end
-    portfolios = []
-    portfolio_errors = []
-    portfolios_params.each_value do |portfolio_param|
-      portfolio = profile.vendor_portfolios.build(
-        work_experience: portfolio_param[:work_experience]
-      )
-      unless portfolio.valid?
-        portfolio_errors << "Portfolio credentials missing"
-      end
-      portfolios << { portfolio: portfolio, work_images: portfolio_param[:work_images] }
-    end
-  
-    if profile.valid? && portfolio_errors.empty?
-      ActiveRecord::Base.transaction do
-        profile.save!
 
-        portfolios.each do |entry|
-          portfolio = entry[:portfolio]
-          portfolio.vendor_profile_id = profile.id
-          portfolio.save!
-          if entry[:work_images].present?
-            entry[:work_images].each { |img| portfolio.images.attach(img) }
-          end
-        end
+    @vendor_profile = VendorProfile.new(basic_create_fields)
 
-        render json: VendorSerilizers::VendorProfileShowSerializer.new(profile).serializable_hash, status: :created
-      end
-    else
-      errors = profile.errors.full_messages + portfolio_errors
-      render json: { success: false, errors: errors }, status: :unprocessable_entity
-    end
-  end
- 
-  
-  def update
-    vendor_profile = VendorProfile.find(params[:id])
-    vendor_profile.assign_attributes(vendor_profile_params.except(:profile_image, :vendor_portfolios))
-    
-    if vendor_profile_params[:profile_image].present?
-      vendor_profile.profile_image.attach(vendor_profile_params[:profile_image])
-    end
-    portfolios_params = vendor_profile_params[:vendor_portfolios] || {}
-  
-    unless portfolios_params.empty?
+    # Attach profile image
+    attach_profile_image_on_create
 
-      vendor_profile.vendor_portfolios.destroy_all
-      portfolios_params.each_value do |portfolio_param|
-        portfolio = vendor_profile.vendor_portfolios.build(
-          work_experience: portfolio_param[:work_experience]
-        )
-        if portfolio_param[:work_images].present?
-          portfolio_param[:work_images].each { |img| portfolio.images.attach(img) }
-        end
-      end
+    # Process portfolios
+    unless process_portfolios_on_create
+      render json: { success: false, errors: [ "At least one portfolio is required" ] }, status: :unprocessable_entity
+      return
     end
 
-    if vendor_profile.save
+    if @vendor_profile.save
       render json: {
-        message: "Vendor profile updated successfully",
-        data: VendorSerilizers::VendorProfileShowSerializer.new(vendor_profile).serializable_hash
-      }, status: :ok
+        success: true,
+        message: "Vendor profile created successfully",
+        data: VendorSerilizers::VendorProfileShowSerializer.new(@vendor_profile).serializable_hash
+      }, status: :created
     else
-      errors = vendor_profile.errors.full_messages
       render json: {
-        message: "Failed to update vendor profile",
-        errors: errors
+        success: false,
+        errors: @vendor_profile.errors.full_messages
       }, status: :unprocessable_entity
     end
+  rescue => e
+    Rails.logger.error "Vendor profile create error: #{e.message}"
+    render json: { success: false, errors: [ e.message ] }, status: :internal_server_error
   end
-  
 
-  def destroy
-    @vendor.destroy
-    head :no_content
+  # private
+
+
+  def basic_create_fields
+    vendor_profile_create_params.slice(
+      :full_name,
+      :phone_number,
+      :second_phone_number,
+      :address,
+      :latitude,
+      :longitude,
+      :user_id
+    )
+  end
+
+  def attach_profile_image_on_create
+    return unless vendor_profile_create_params[:profile_image].present?
+
+    @vendor_profile.profile_image.attach(vendor_profile_create_params[:profile_image])
+  end
+
+  def process_portfolios_on_create
+    portfolios_params = vendor_profile_create_params[:vendor_portfolios_attributes]
+    return false if portfolios_params.blank?
+
+    portfolios_data = portfolios_params.to_h.values
+    return false if portfolios_data.empty?
+
+    portfolios_data.each do |pdata|
+      portfolio = @vendor_profile.vendor_portfolios.build(work_experience: pdata[:work_experience])
+
+      # Attach images
+      images = Array(pdata[:work_images]).reject(&:blank?)
+      images.each { |img| portfolio.images.attach(img) }
+    end
+
+    true
+  end
+
+  def update
+    @vendor_profile = VendorProfile.find(params[:id])
+
+    update_profile
+
+    if @vendor_profile.save
+      render json: {
+        message: "Updated successfully",
+        data: VendorSerilizers::VendorProfileUpdateSerializer.new(@vendor_profile.reload).as_json
+      }, status: :ok
+    else
+      render json: {
+        message: "Failed",
+        errors: @vendor_profile.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { message: "Profile not found" }, status: :not_found
+  rescue => e
+    Rails.logger.error "Vendor profile update error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+    render json: { message: "Error", errors: [ e.message ] }, status: :internal_server_error
   end
 
   private
 
-  def set_vendor
-    @vendor = VendorProfile.find_by(id: params[:id])
+  def vendor_profile_update_params
+    @vendor_profile_update_params ||= params.require(:vendor_profile).permit(
+      :full_name,
+      :phone_number,
+      :second_phone_number,
+      :address,
+      :latitude,
+      :longitude,
+      :user_id,
+      :profile_image,
+      vendor_portfolios_attributes: [
+        :id,
+        :work_experience,
+        { work_images: [] },
+        { keep_image_ids: [] }
+      ]
+    )
   end
 
-   
-def vendor_profile_params
-  params.require(:vendor_profile).permit(
-    :full_name,
-    :phone_number,
-    :second_phone_number,
-    :address,
-    :latitude,
-    :longitude,
-    :user_id,
-    :profile_image,
-    vendor_portfolios: [
-      :work_experience,
-      { work_images: [] }
-    ]
-  )
-end
+  def update_profile
+    # Update basic fields
+    @vendor_profile.assign_attributes(basic_fields)
+
+    # Update profile image
+    attach_profile_image if vendor_profile_update_params[:profile_image].present?
+
+    # Update portfolios
+    process_portfolios if vendor_profile_update_params[:vendor_portfolios_attributes].present?
+  end
+
+  def basic_fields
+    vendor_profile_update_params.slice(
+      :full_name,
+      :phone_number,
+      :second_phone_number,
+      :address,
+      :latitude,
+      :longitude
+    )
+  end
+
+  def attach_profile_image
+    @vendor_profile.profile_image.purge if @vendor_profile.profile_image.attached?
+    @vendor_profile.profile_image.attach(vendor_profile_update_params[:profile_image])
+  end
+
+  def process_portfolios
+    portfolios_data = vendor_profile_update_params[:vendor_portfolios_attributes].to_h.values
+    kept_ids = []
+
+    portfolios_data.each do |pdata|
+      portfolio = find_or_build_portfolio(pdata[:id]&.to_i)
+      next unless portfolio
+
+      update_portfolio(portfolio, pdata)
+      kept_ids << portfolio.id
+    end
+
+    # Remove deleted portfolios
+    @vendor_profile.vendor_portfolios.where.not(id: kept_ids).destroy_all
+  end
+
+  def find_or_build_portfolio(portfolio_id)
+    if portfolio_id.present? && portfolio_id > 0
+      @vendor_profile.vendor_portfolios.find_by(id: portfolio_id)
+    else
+      @vendor_profile.vendor_portfolios.build
+    end
+  end
+
+  def update_portfolio(portfolio, pdata)
+    portfolio.work_experience = pdata[:work_experience]
+
+    # Handle images
+    keep_ids = Array(pdata[:keep_image_ids]).map(&:to_i).reject(&:zero?)
+    new_images = Array(pdata[:work_images]).reject(&:blank?)
+
+    # Remove images not in keep list (only for existing portfolios)
+    if portfolio.persisted?
+      portfolio.images.each { |img| img.purge unless keep_ids.include?(img.id) }
+    end
+
+    # Add new images
+    new_images.each { |img| portfolio.images.attach(img) }
+
+    portfolio.save!
+  end
+
+  def vendor_profile_create_params
+    @vendor_profile_create_params ||= params.require(:vendor_profile).permit(
+      :full_name,
+      :phone_number,
+      :second_phone_number,
+      :address,
+      :latitude,
+      :longitude,
+      :user_id,
+      :profile_image,
+      vendor_portfolios_attributes: [
+        :work_experience,
+        { work_images: [] },
+        { keep_image_ids: [] }
+      ]
+    )
+  end
+
+  # def vendor_profile_params
+  #   params.require(:vendor_profile).permit(
+  #     :full_name,
+  #     :phone_number,
+  #     :second_phone_number,
+  #     :address,
+  #     :latitude,
+  #     :longitude,
+  #     :user_id,
+  #     :profile_image,
+  #     vendor_portfolios_attributes: [
+  #       :work_experience,
+  #       { work_images: [] },
+  #       { keep_image_ids: [] }
+  #     ]
+  #   )
+  # end
+
+  # def vendor_profile_update_params
+  #   params.require(:vendor_profile).permit(
+  #     :full_name,
+  #     :phone_number,
+  #     :second_phone_number,
+  #     :address,
+  #     :latitude,
+  #     :longitude,
+  #     :user_id,
+  #     :profile_image,
+  #     vendor_portfolios_attributes: [
+  #       :id,  # Important: Allow id for updates
+  #       :work_experience,
+  #       { work_images: [] },
+  #       { keep_image_ids: [] }
+  #     ]
+  #   )
+  # end
+
 
 
   # def vendor_params
   #   params.require(:vendor_profile).permit(:user_id, :full_name, :address, :latitude, :longitude, :phone_number, :second_phone_number, :profile_image, :cnic_front, :cnic_back)
   # end
 end
-
-
- 

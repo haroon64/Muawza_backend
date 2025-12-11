@@ -11,7 +11,7 @@ services_data = [
   { name: "Gardner", icon: "person.png" },
   { name: "Car Mechanic", icon: "mechanic.png" },
 { name: "Gardner", icon: "person.png" },
-  { name: "Car wash", icon: "car-service.png" },
+  { name: "Car wash", icon: "car-service.png" }
 ]
 
 services_data.each do |data|

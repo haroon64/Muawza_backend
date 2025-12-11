@@ -3,14 +3,12 @@ class SubService < ApplicationRecord
   belongs_to :vendor_profile
   has_many :service_areas, dependent: :destroy
   has_many :service_availabilities, dependent: :destroy
-  has_many :bookings, dependent: :destroy
   has_many :reviews, dependent: :destroy
   has_one :address
   has_many :conversations, dependent: :destroy
 
   has_one_attached :sub_service_image
   has_one :address, dependent: :destroy
-
   # scope :by_city, ->(city) { where(city: city) }
   # validate :vendor_profile_must_exist, on: :create
   validate :description

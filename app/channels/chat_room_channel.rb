@@ -1,8 +1,5 @@
-# app/channels/chat_room_channel.rb
-
 class ChatRoomChannel < ApplicationCable::Channel
   @@online_users = Hash.new { |hash, key| hash[key] = [] }
-  puts "DEBUG: @@online_users length: #{@@online_users.length}"
 
   def subscribed
     @conversation_id = params[:conversation_id]
@@ -11,7 +8,6 @@ class ChatRoomChannel < ApplicationCable::Channel
     if can_access_conversation?
       stream_from conversation_channel
 
-      # Mark current user online for this conversation
       @@online_users[@conversation_id] << current_user&.id unless @@online_users[@conversation_id].include?(current_user.id)
 
       logger.info "User #{current_user.id} subscribed for conversation #{@conversation_id}"
@@ -97,19 +93,17 @@ class ChatRoomChannel < ApplicationCable::Channel
   # MESSAGE HANDLERS
   # ===========================================
   def handle_new_message(data)
-    puts "handle new message is hit "
+    
     return unless @conversation
 
-    content        = data["content"]
+    content = data["content"]
 
-    message_type   = data["message_type"] || "text"
+    message_type = data["message_type"] || "text"
 
     message = @conversation.messages.new(
       sender_id: current_user.id,
       body: content
     )
-
-    puts "DEBUG – Saving Message: #{message.inspect}"
 
     if message.save
       @conversation.touch
@@ -127,7 +121,6 @@ class ChatRoomChannel < ApplicationCable::Channel
       })
     end
   end
-
 
 
   def handle_typing(data)
@@ -153,9 +146,6 @@ class ChatRoomChannel < ApplicationCable::Channel
     )
   end
 
-  # ===========================================
-  # BROADCAST HELPERS
-  # ===========================================
   def broadcast_message(message)
     ActionCable.server.broadcast(
       conversation_channel,
@@ -186,9 +176,6 @@ class ChatRoomChannel < ApplicationCable::Channel
     )
   end
 
-  # ===========================================
-  # UTILITY METHODS
-  # ===========================================
   def get_receiver_id
     customer_user_id = @conversation.customer_profile&.user_id
     vendor_user_id = @conversation.vendor_profile&.user_id
@@ -222,7 +209,7 @@ class ChatRoomChannel < ApplicationCable::Channel
       conversation_id: message.conversation_id,
       sender_id: message.sender_id,
       body: message.body,
-
+     
       timestamp: message.created_at.iso8601
     }
   end

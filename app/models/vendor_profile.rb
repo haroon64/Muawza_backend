@@ -4,16 +4,17 @@ class VendorProfile < ApplicationRecord
   has_many :sub_services, dependent: :destroy
   has_many :vendor_portfolios, dependent: :destroy
   accepts_nested_attributes_for :vendor_portfolios
-              
   has_one_attached :profile_image, dependent: :destroy
-
-  # Validations for attributes (add other necessary attributes)
   validates :profile_image, presence: true
   validates :address, presence: true
   validates :phone_number, presence: true
-
   validate :must_have_at_least_one_portfolio
-
+ 
+  def image_urls
+    work_images.map do |image|
+      Rails.application.routes.url_helpers.rails_blob_url(image, only_path: false)
+    end
+  end
   private
 
   def must_have_at_least_one_portfolio
@@ -21,5 +22,4 @@ class VendorProfile < ApplicationRecord
       errors.add(:vendor_portfolios, "must include at least one portfolio")
     end
   end
-
 end

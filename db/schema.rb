@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_10_183306) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_11_090246) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -51,20 +51,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_183306) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["sub_service_id"], name: "index_addresses_on_sub_service_id"
-  end
-
-  create_table "bookings", force: :cascade do |t|
-    t.bigint "sub_service_id", null: false
-    t.bigint "customer_profile_id", null: false
-    t.integer "booking_status", default: 0, null: false
-    t.date "scheduled_date", null: false
-    t.time "scheduled_time", null: false
-    t.text "customer_notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["customer_profile_id"], name: "index_bookings_on_customer_profile_id"
-    t.index ["sub_service_id", "scheduled_date", "scheduled_time"], name: "index_bookings_on_sub_service_and_schedule"
-    t.index ["sub_service_id"], name: "index_bookings_on_sub_service_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -118,20 +104,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_183306) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
-  end
-
-  create_table "payments", force: :cascade do |t|
-    t.bigint "booking_id", null: false
-    t.string "processor_identifier"
-    t.string "transaction_reference"
-    t.decimal "amount"
-    t.integer "status"
-    t.string "method"
-    t.decimal "processor_fee"
-    t.decimal "net_amount"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["booking_id"], name: "index_payments_on_booking_id"
   end
 
   create_table "reviews", force: :cascade do |t|
@@ -233,15 +205,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_10_183306) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "sub_services"
-  add_foreign_key "bookings", "customer_profiles"
-  add_foreign_key "bookings", "sub_services"
   add_foreign_key "categories", "services"
   add_foreign_key "conversations", "sub_services"
   add_foreign_key "customer_profiles", "users"
   add_foreign_key "favourites", "customer_profiles"
   add_foreign_key "favourites", "sub_services"
   add_foreign_key "messages", "conversations"
-  add_foreign_key "payments", "bookings"
   add_foreign_key "reviews", "customer_profiles"
   add_foreign_key "reviews", "sub_services"
   add_foreign_key "service_areas", "sub_services"

@@ -1,13 +1,13 @@
 class Api::V1::Customer::CustomerProfilesController < ApplicationController
   include ApiAuthentication
-  before_action  :set_default_format
-  # GET /api/v1/customer/customer_profiles
+  before_action :set_default_format
+
   def index
     profiles = CustomerProfile.all
     render json: profiles, each_serializer: CustomerProfileShowSerializer, status: :ok
   end
 
-  # GET /api/v1/customer/customer_profiles/:id
+
   def show
     profile = CustomerProfile.find_by(user_id: params[:id])
 
@@ -18,8 +18,9 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
     end
   end
 
+
   def create
-    required_fields = [:user_id, :full_name, :phone_number, :gender, :address, :latitude, :longitude]
+    required_fields = [ :user_id, :full_name, :phone_number, :gender, :address, :latitude, :longitude ]
     missing_fields = required_fields.select { |key| customer_profile_params[key].blank? }
     if missing_fields.any?
       return render json: { success: false, message: "Missing or blank parameter(s): #{missing_fields.join(', ')}" }, status: :bad_request
@@ -27,9 +28,8 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
 
     user_id = customer_profile_params[:user_id].to_i
 
-    existing_profile = CustomerProfile.find_by(user_id: user_id)
-    if existing_profile
-      return render json: { success: false, message: "Profile already exists" }, status: :unprocessable_entity
+    if CustomerProfile.exists?(user_id: user_id)
+      render json: { success: false, message: "Profile already exists" }, status: :unprocessable_entity and return
     end
 
     begin
@@ -50,19 +50,17 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
     end
   end
 
+
   def update
     profile = CustomerProfile.find_by(user_id: params[:id])
     unless profile
       render json: { success: false, message: "Profile not found" }, status: :not_found and return
     end
     permitted_params = customer_profile_update_params
-    # Handle profile_image separately if provided
     if permitted_params[:profile_image].present?
       profile.profile_image.attach(permitted_params[:profile_image])
     elsif permitted_params[:profile_image] == ""
-      # Do nothing if the key is present but empty string (as per strong param logic)
     end
-    # Remove :profile_image so we don't double assign it (since it's attached above)
     assignable_params = permitted_params.except(:profile_image)
     profile.assign_attributes(assignable_params)
     if profile.save
@@ -71,7 +69,8 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
       render json: { success: false, errors: profile.errors.full_messages }, status: :unprocessable_entity
     end
   end
-  # DELETE 
+
+
   def destroy
     profile = CustomerProfile.find_by(user_id: params[:id])
     unless profile
@@ -87,15 +86,15 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
   def customer_profile_params
     permitted = params.require(:customer_profile).permit(
       :full_name,
-      :user_id,      # frontend must send user_id
+      :user_id,     
       :phone_number,
       :address,
       :latitude,
       :longitude,
       :gender,
-      :profile_image # ActiveStorage file upload
+      :profile_image 
     )
-    # If profile_image param not present, set to empty string
+
     unless permitted.key?(:profile_image)
       permitted[:profile_image] = ""
     end
@@ -112,7 +111,7 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
     request.format = :json
   end
 
- 
+
   def customer_profile_update_params
     permitted = params.require(:customer_profile).permit(
       :full_name,
@@ -121,14 +120,12 @@ class Api::V1::Customer::CustomerProfilesController < ApplicationController
       :latitude,
       :longitude,
       :gender,
-      :profile_image # ActiveStorage file upload
+      :profile_image 
     )
-    # If profile_image param not present, set to empty string
+    
     unless permitted.key?(:profile_image)
       permitted[:profile_image] = ""
     end
     permitted
   end
-  
 end
-

@@ -35,39 +35,42 @@ gem "thruster", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
-gem 'jwt'
+gem "redis", "~> 5.0"
 
-gem 'bcrypt', '~> 3.1.7'
 
-gem 'aws-sdk-s3', require: false
+gem "jwt"
 
-gem 'image_processing', '~> 1.2'
+gem "bcrypt", "~> 3.1.7"
 
-gem 'ransack'
+gem "aws-sdk-s3", require: false
 
-gem 'devise'
+gem "image_processing", "~> 1.2"
 
-gem 'devise-jwt'
+gem "ransack"
 
-gem 'omniauth'
+gem "devise"
 
-gem 'omniauth-google-oauth2'
+gem "devise-jwt"
 
-gem 'sidekiq' # Background job processing
+gem "omniauth"
 
-gem 'jsonapi-serializer'
+gem "omniauth-google-oauth2"
 
-gem 'faker' # Fake data generator
+gem "sidekiq" # Background job processing
+
+gem "jsonapi-serializer"
+
+gem "faker" # Fake data generator
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
-  gem 'awesome_print'
-  gem 'byebug', '~> 11.1', '>= 11.1.3'
-  gem 'google-id-token'
+  gem "awesome_print"
+  gem "byebug", "~> 11.1", ">= 11.1.3"
+  gem "google-id-token"
 
- gem 'dotenv-rails'
+ gem "dotenv-rails"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
@@ -76,6 +79,6 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 # Gemfile
-gem 'kaminari'
-gem 'active_model_serializers', '~> 0.10.13'
+gem "kaminari"
+gem "active_model_serializers", "~> 0.10.13"
 gem "omniauth-rails_csrf_protection", "~> 1.0"
