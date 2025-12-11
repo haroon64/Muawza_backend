@@ -80,5 +80,5 @@ group :development, :test do
 end
 # Gemfile
 gem "kaminari"
-gem "active_model_serializers", "~> 0.10.13"
+gem "active_model_serializers", "~> 0.10.16"
 gem "omniauth-rails_csrf_protection", "~> 1.0"
